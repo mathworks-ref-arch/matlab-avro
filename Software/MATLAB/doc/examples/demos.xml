@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2017 MathWorks, Inc.-->
+<demos>
+    <name>MATLAB Interface for Avro</name>
+    <type>toolbox</type>
+    <icon>HelpIcon.DEMOS</icon>
+    <description></description>
+    <website><a href="https://www.mathworks.com">MathWorks</a></website>
+    
+    <demosection>
+        <label>Avro Files</label>
+        <demoitem>
+            <label>Writing and Reading Avro files</label>
+            <type>M-file</type>
+            <source>avroexamples</source>
+        </demoitem>               
+    </demosection>
+    
+</demos>

@@ -1,0 +1,15 @@
+<?xml version='1.0' encoding="utf-8"?>
+
+<toc version="2.0">
+    <tocitem target="GettingStarted.html">MATLAB Interface for Avro
+        <tocitem target="functions.html">Functions
+            <tocitem target="functions/avroread.html">avroread</tocitem>
+            <tocitem target="functions/avrowrite.html">avrowrite</tocitem>
+            <tocitem target="functions/avrobash.html">avrobash</tocitem>
+        </tocitem>               
+        <tocitem target="classes.html">Classes 
+            <tocitem target="classes/bigdata.avro.Reader.html">Reader</tocitem>
+            <tocitem target="classes/bigdata.avro.Writer.html">Writer</tocitem>
+        </tocitem>       
+    </tocitem>    
+</toc>
