@@ -1,6 +1,6 @@
 #  MATLAB&reg; Interface *for Apache Avro*™ - Release Notes
 
-## Release 0.6.0 January 21 2019
+## Release 0.6.0 February 6 2019
 * Support for reading Arrays
 * Add unit tests
 
