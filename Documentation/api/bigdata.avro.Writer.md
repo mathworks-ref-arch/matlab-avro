@@ -15,7 +15,7 @@ See also
 
 
 
-[bigdata.avro.Writer/write](write.md),
+[bigdata.avro.Writer/write](Writer.md),
 [bigdata.avro.Reader](bigdata.avro.Reader.md)
 
 
@@ -24,7 +24,7 @@ See also
 
 Attributes | Class
 :------------------- | :----------------------------------------------------------------
-Superclasses      | bigdata.avro.util.Core
+Superclasses      | [bigdata.avro.util.Core](bigdata.avro.util.Core.md)
 Sealed            | false
 Construct on load | false
 

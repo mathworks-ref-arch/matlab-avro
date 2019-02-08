@@ -44,6 +44,3 @@ Avro provides functionality similar to systems such as Thrift, Protocol Buffers,
 
 ## References:  
 Please see https://avro.apache.org/docs/current.
-
-
-![Image of MATLAB](images/mathworkslogo.jpg)

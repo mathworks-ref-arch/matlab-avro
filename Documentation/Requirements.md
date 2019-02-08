@@ -11,5 +11,3 @@ This module was built to run with [MATLAB](https://www.mathworks.com/support/sys
 To rebuild the underlying Java artifacts, the following tools are required.
 * [Maven](https://maven.apache.org/download.cgi)
 * [JDK 8](https://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html)
-
-![Image of MATLAB](images/mathworkslogo.jpg)

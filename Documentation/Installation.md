@@ -39,5 +39,3 @@ runtests
 
 ## Advanced
 To make this package always available to MATLAB, please save the paths to the MATLAB path using the *pathtool*. Additionally, create a file called *javaclasspath.txt* in the user's preferences directory ([prefdir](https://www.mathworks.com/help/matlab/ref/prefdir.html)).
-
-![Image of MATLAB](images/mathworkslogo.jpg)
