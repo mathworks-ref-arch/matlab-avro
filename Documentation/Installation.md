@@ -12,7 +12,7 @@ git clone --recursive https://github.com/matlab-avro.git
 ```
 
 2. Compile the JAR file
-Compile the Java code using Maven. Please see [detailed instructions to rebuild](Documentation/Rebuild.md) for more details.  
+Compile the Java code using Maven. Please see [detailed instructions to rebuild](Rebuild.md) for more details.  
 
 ```
 cd Software/Java  
@@ -30,7 +30,7 @@ startup
 ```
 
 4. Run unit tests  
-Run the unit tests using MATLAB's test framework. Please see the [documentation](Documentation/BasicUsage.md) and  study the tests under the *test/unit* folder to understand the capabilities of this package.  
+Run the unit tests using MATLAB's test framework. Please see the [documentation](BasicUsage.md) and  study the tests under the *test/unit* folder to understand the capabilities of this package.  
 
 ```
 cd /test/unit
