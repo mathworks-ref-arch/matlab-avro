@@ -17,11 +17,14 @@ import org.apache.avro.Schema.Field;
 import org.apache.avro.Schema.Type;
 import org.apache.avro.file.DataFileReader;
 import org.apache.avro.file.DataFileStream.Header;
+import org.apache.avro.file.SeekableInput;
 import org.apache.avro.file.SeekableFileInput;
 import org.apache.avro.generic.GenericArray;
 import org.apache.avro.generic.GenericDatumReader;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.io.DatumReader;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.avro.mapred.FsInput;
 
 /**
  * The Class Reader.
@@ -44,7 +47,7 @@ public class Reader {
 	private List<Object> isDataArray = new ArrayList<>();
 
 	/** The seek file. */
-	SeekableFileInput seekFile = null;
+	SeekableInput seekFile = null;
 
 	/** The use sync to seek. */
 	boolean useSyncToSeek = false;
@@ -154,7 +157,7 @@ public class Reader {
 				}
 				data[i] = retfloat;
 				break;
-			case INT:				
+			case INT:
 				data[i] = ((List<Integer>) data[i]).stream().mapToInt(x -> x).toArray();
 				break;
 			case LONG:
@@ -170,10 +173,10 @@ public class Reader {
 	}
 
 	private void castArrayIndex() {
-		
+
 		for (int i = 0; i < this.arrayCount.length; i++) {
 			this.arrayCount[i] = this.arrayCount[i]!=null ?  ((List<Integer>) this.arrayCount[i]).stream().mapToInt(j -> j).toArray() : null;
-				
+
 		}
 	}
 
@@ -393,18 +396,28 @@ public class Reader {
 			return;
 		}
 
-		File file = new File(fileName);
 		DatumReader<GenericRecord> datumReader = new GenericDatumReader<>();
+		Header header;
 
-		this.dataFileReader = new DataFileReader<>(file, datumReader);
-		Header header = this.dataFileReader.getHeader();
+    if (fileName.startsWith("hdfs://")) {
+			Configuration conf = new Configuration();
+			conf.set("fs.hdfs.impl", "org.apache.hadoop.hdfs.DistributedFileSystem");
+			FsInput file = new FsInput(new org.apache.hadoop.fs.Path(fileName), conf);
+			this.dataFileReader = new DataFileReader<>(file, datumReader);
+			this.seekFile = new FsInput(new org.apache.hadoop.fs.Path(fileName), conf);
+
+		} else {
+			File file = new File(fileName);
+			this.dataFileReader = new DataFileReader<>(file, datumReader);
+			this.seekFile = new SeekableFileInput(file);
+		}
+
+		header = this.dataFileReader.getHeader();
 		this.dataFileReader.close();
 
-		this.seekFile = new SeekableFileInput(file);
 		seekPosition = seekPosition < 0 ? 0 : seekPosition;
 		this.seekFile.seek(seekPosition);
 		this.dataFileReader = DataFileReader.openReader(this.seekFile, datumReader, header, true);
-
 	}
 
 	/**
@@ -454,7 +467,7 @@ public class Reader {
 
 		// Cast results to useful format for MATLAB
 		castToMatlab(out, getTypes(schema));
-		
+
 		castArrayIndex();
 
 		// Close all streams if we requested all records

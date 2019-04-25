@@ -70,7 +70,7 @@ classdef Reader < bigdata.avro.util.Core
             obj.parseInputs(varargin{:})
 
             % Check if file exists
-            if isempty(dir(obj.FileName))
+            if ~startsWith(obj.FileName,"hdfs://") && isempty(dir(obj.FileName))
                 error(['bigdata.avro.Reader:read:FileNotFound ',obj.FileName])
             end
 
@@ -79,6 +79,18 @@ classdef Reader < bigdata.avro.util.Core
                 return
             end
 
+            if startsWith(obj.FileName,"hdfs://")
+                data = obj.readArrayFile;
+                return
+            end
+            
+            % detect if schema contains arrays            
+            schema = char( obj.JavaHnd.getSchema( obj.FileName ) );
+            if contains( schema, '"items' )
+                data = obj.readArrayFile;
+                return
+            end
+                
             % Read the Avro file
             data = cell(obj.JavaHnd.read(obj.FileName, obj.SeekPosition, ...
                 obj.NumRecords));
@@ -96,12 +108,13 @@ classdef Reader < bigdata.avro.util.Core
                     % If Avro logical exists convert to correct datatype
                     data{j} = obj.convertToMatlab(data{j},...
                         avroFields{j}.logicalType, matlabFields{j});
-                elseif ~ isempty(matlabFields) ...
-                        && strcmp(matlabFields{j}.type,'string') || strcmp(matlabFields{j}.type,'char') ...
+                elseif ~isempty(matlabFields) 
+                        if strcmp(matlabFields{j}.type,'string') || strcmp(matlabFields{j}.type,'char') ...
                         && ~ isstring(data{j})
-                    % Check if a char array was written but original data in
-                    % MATLAB was a string because of performance reason in <=2018b
-                    data{j} = string(data{j});
+                            % Check if a char array was written but original data in
+                            % MATLAB was a string because of performance reason in <=2018b
+                            data{j} = string(data{j});
+                        end
                 end
             end
 
@@ -136,7 +149,11 @@ classdef Reader < bigdata.avro.util.Core
                         'VariableNames', fieldNames(ind));
                     data.Properties.DimensionNames{1} = fieldNames{1};
                 case 'table'
+                    try
                     data = table(data{ind}, 'VariableNames', fieldNames);
+                    catch
+                     data =  struct2table(cell2struct(data(ind), fieldNames),'AsArray',true);
+                    end
                 case 'table-rownames'
                     ind = 2 : length(ind);
                     data = table(data{ind}, ...
@@ -182,6 +199,46 @@ classdef Reader < bigdata.avro.util.Core
             end
         end
 
+        function data = readArrayFile(obj)
+        
+            % Initialize and retrieve the DataFileReader
+            obj.JavaHnd.initReader(obj.FileName,obj.SeekPosition);
+            dataFileReader = obj.JavaHnd.getDataFileReader();
+            
+            schema = dataFileReader.getSchema();
+            fields = schema.getFields.toArray;
+            fieldnames = cell( 1, fields.length );
+            for n = 1:length( fieldnames )
+                fieldnames{n} = char(fields(n).name);
+            end
+            
+            data = cell( 0, length( fieldnames ) );
+            row = 1;
+            while( dataFileReader.hasNext && row <= obj.NumRecords )
+                record = dataFileReader.next();
+                for n = 1:length( fieldnames )
+                    value = record.get( fieldnames{n} );
+                    if isnumeric( value )
+                        data{row,n} = value;
+                    else
+                        % Get the stream type
+                        fieldSchema = fields(n).schema;
+                        elementType = fieldSchema.getElementType;
+                        stream = value.stream;
+                        if strcmp( elementType.toString, '"int"' )
+                            data{row,n} = com.mathworks.bigdata.avro.Cast.convertToInt(stream);
+                        else
+                            data{row,n} = com.mathworks.bigdata.avro.Cast.convertToDouble(stream);
+                        end
+                    end
+                end
+                row = row + 1;
+            end
+            
+            data = cell2table( data, 'VariableNames', fieldnames );
+                    
+        end
+        
         function out = getSchema(obj,file)
             % Get the Avro schema
 

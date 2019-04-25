@@ -22,6 +22,14 @@ The MATLAB interface for Apache Avro provides for reading and writing of Apache 
 
 
 ## Installation
+Installation of the interface requires building the support package (JAR file) using Maven.
+
+Before proceeding, ensure that the below products are installed:  
+a) Java SDK  
+b) Maven  
+
+The links to download these products are provided in the section [3rd party products](#3rd-party-products).
+
 Please see the [documentation](Documentation/Installation.md) for detailed installation instructions. To get started quickly:  
 
 ### Build the JAR file
@@ -29,7 +37,8 @@ To install the interface, first build the JAR file.
 ```bash
 cd Software/Java
 mvn clean package
-```
+```  
+The maven build places the Avro package in the location <path>/Software/MATLAB/lib/jar/. Note the full path to the JAR file as this should be added to the static path in the next step.  
 
 ### Install the MATLAB package
 Open MATLAB and install the support package.
@@ -37,6 +46,7 @@ Open MATLAB and install the support package.
 cd Software/MATLAB
 startup
 ```
+The startup script checks if the required packages are added to the static path. To set the static path, see [detailed instructions to install](Documentation/Installation.md).  
 
 ## Getting Started
 

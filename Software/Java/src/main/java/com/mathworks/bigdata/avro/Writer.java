@@ -15,6 +15,11 @@ import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericDatumWriter;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.io.DatumWriter;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.avro.mapred.FsInput;
+import org.apache.hadoop.fs.FSDataOutputStream;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 
 /**
  * The Class Writer.
@@ -144,6 +149,14 @@ public class Writer {
 	 */
 	public void setMetaValue(String[] metaValue) {
 		this.metaValue = metaValue;
+	}
+
+	public FSDataOutputStream getHDFSfile(String fileName) throws IOException {
+		Configuration conf = new Configuration();
+		conf.set("fs.hdfs.impl", "org.apache.hadoop.hdfs.DistributedFileSystem");
+		FileSystem fs = FileSystem.get( java.net.URI.create(fileName), conf );
+		FSDataOutputStream file = fs.create(new org.apache.hadoop.fs.Path(fileName));
+		return file;
 	}
 
 	/**

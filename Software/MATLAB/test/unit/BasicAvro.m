@@ -74,6 +74,14 @@ classdef BasicAvro < matlab.unittest.TestCase
             assertEqual(this, D1, D2, 'The values read should be as written.');
         end
 
+        function testArrayWithinTable(this)
+            D1 = table( [1;2], {rand(10,1);rand(5,1)} );
+            fn = 'tmpTable.avro';
+            avrowrite(fn, D1);
+            D2 = avroread(fn);
+            assertEqual(this, D1, D2, 'The values read should be as written.');            
+        end
+        
     end
 end
 

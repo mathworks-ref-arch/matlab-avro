@@ -106,11 +106,87 @@ classdef Writer < bigdata.avro.util.Core
             % Set any extra meta data to be written to Avro file
             obj.setExtraMetaData
 
-            % Write the Avro file
-            obj.JavaHnd.write(obj.FileName, fields, data, obj.Schema,...
-                obj.Compression.string, obj.CompressionLevel)
+            % Detect if contains arrays
+            containsArrays = false;
+            for n = 1:length( data )
+                if iscell( data{n} ) && ~isempty( data{n} )
+                    example = data{n}{1};
+                    if isa( example, 'double' ) && numel( example ) > 1
+                        containsArrays = true;
+                    end
+                end
+            end
+            
+            % Write the Avro file             
+            if containsArrays
+                obj.writeAvroFile(obj.FileName, fields, data, obj.Schema,...
+                    obj.Compression.string, obj.CompressionLevel)
+            else
+                obj.JavaHnd.write(obj.FileName, fields, data, obj.Schema,...
+                    obj.Compression.string, obj.CompressionLevel)                
+            end
+            
         end
 
+        function writeAvroFile(obj, filename, keys, data, schemaString, compressionCodec, compressionLevel)
+        
+            schemaString = replace( schemaString, '"type":"double"', ...
+                '"type":{"type":"array","items":"double"}' );
+            avroSchema = javaMethod( 'parse', 'org.apache.avro.Schema', schemaString );
+            
+            % Create the writer to serialize the file
+            genericWriter = org.apache.avro.generic.GenericDatumWriter();
+            genericWriter.setSchema(avroSchema);
+            
+            dfw = org.apache.avro.file.DataFileWriter(genericWriter);
+            
+            % set compression codec
+            obj.JavaHnd.addCompression(dfw, compressionCodec, compressionLevel);
+            
+            % obtain the filesystem file
+            if startsWith(filename, "hdfs://")
+                file = obj.JavaHnd.getHDFSfile(filename);
+%                 conf = org.apache.hadoop.conf.Configuration;
+%                 conf.set("fs.hdfs.impl", "org.apache.hadoop.hdfs.DistributedFileSystem");
+%                 fs = org.apache.hadoop.fs.FileSystem.get( ...
+%                     java.net.URI.create(filename), conf );
+%                 file = fs.create(org.apache.hadoop.fs.Path(filename));
+            else
+                file = java.io.File( filename );
+            end
+
+            if obj.AppendToFile
+                dfw.appendTo( file );
+            else
+                dfw.create( avroSchema, file );
+            end
+            
+            rows = length( data{1} );
+            for n = 1:rows
+                % Use the schema parser to create a generic record
+                genericRecord = javaObject('org.apache.avro.generic.GenericData$Record',avroSchema);
+                for p = 1:length( data )
+                    v = data{p}(n);
+                    if isscalar( v ) && isa( v, 'double' )
+                        v = { v }; % Box
+                    end
+                    if iscell( v )
+                        stream = javaMethod('of', 'java.util.stream.DoubleStream', v{1}(:) );
+                        boxed = stream.boxed();
+                        list = boxed.collect(java.util.stream.Collectors.toList());
+                        genericRecord.put(keys{p},list);
+                    else
+                        genericRecord.put(keys{p},v);
+                    end
+                end
+                % Append the record to the file
+                dfw.append(genericRecord);
+                dfw.flush(); % emits a sync marker and flushes the current state.
+            end
+            
+            dfw.close();
+        end                
+        
         function finish(obj)
             % Finish appending data
             %

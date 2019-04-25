@@ -37,10 +37,20 @@ The schema can be inspected as well.
 ## Write an Avro file
 Writing an array of numbers to file is easy using ```avrowrite```:
 
-```
+```matlab
 data = randn(1e5,10);
 avrowrite('tmp.avro', data);
 ```
+
+Writing to HDFS:
+
+```
+% Replace the server address and user in hdfsURL with correct values.
+hdfsURL = "hdfs://\<server>/<user>/";
+hdfsFName = hdfsURL + "tmp.avro";
+avrowrite(hdfsFName,data);   
+```
+
 
 ## Read an Avro file
 Use ```avroread``` to read the values back in:
@@ -49,12 +59,17 @@ Use ```avroread``` to read the values back in:
 r = avroread('tmp.avro');
 ```
 
+Reading from HDFS:
+
+```
+r = avroread(hdfsFName);   
+```
+
 To ensure the values are equal:
 
 ```
 isequal(data,r)
 ```
-
 ## Writing a Linear Spaced Vector to an Avro file
 When writing a linear spaced vector to an Avro file, note that the data should be transposed before writing to the file. This is because MATLAB stores data in column-major order.
 This behavior is similar to using [jsonencode](https://www.mathworks.com/help/matlab/ref/jsonencode.html) and [jsondecode](https://www.mathworks.com/help/matlab/ref/jsondecode.html) of data in MATLAB.
@@ -85,7 +100,6 @@ To save the object as an Avro file:
 ```matlab
 avrowrite('example.avro',ex);   
 ```
-
 ## Deserialization of MATLAB objects from Avro files
 The deserialization of MATLAB objects works equally simply.
 
@@ -140,8 +154,11 @@ using the same array of objects in the previous section, slices of this
 data can be appended to an avro file.
 
 ```matlab
-avrowrite('growingfile.avro', [containerObjs(1:10).number]);
-avrowrite('growingfile.avro',[containerObjs(21:30).number],'AppendToFile',true)
+avrowrite('growingfile.avro', [containerObjs(1:10).number]);   
+avrowrite('growingfile.avro', [containerObjs(11:20).number],'AppendToFile',true);   
+avrowrite('growingfile.avro',[containerObjs(21:30).number],'AppendToFile',true)   
+avrowrite('growingfile.avro', [containerObjs(31:40).number],'AppendToFile',true);   
+
 ```
 
 ## Test sync markers
@@ -150,24 +167,24 @@ Lets seek to an arbitrary position first, it will seek to the next sync
 marker automatically since the file has been written with sync markers.
 
 ```
-[data,reader] = avroread('growingfile.avro','NumRecords',2,...
-    'SeekPosition',10,'UseSyncToSeek',false)  
+[data,reader] = avroread('growingfile.avro','NumRecords',1,...
+    'SeekPosition',-1,'UseSyncToSeek',false)   
 
 data =
 
-   424   557   993    77    49   282   632   407   724   397
-   937   867   892   771   627   206   264    10   348   768
+   510   326   287   901   195   273    68   151   635   575
 
 
-reader = 
+reader =
 
   Reader with properties:
 
          FileName: 'growingfile.avro'
-     SeekPosition: 10
-       NumRecords: 2
+     SeekPosition: -1
+       NumRecords: 1
      FileEncoding: BINARY
     UseSyncToSeek: 0
+
 ```
 
 Read the next record, switch the seek position off by setting < 0
@@ -177,10 +194,8 @@ reader.read('SeekPosition',-1)
 
 ans =
 
-   424   557   993    77    49   282   632   407   724   397
-   937   867   892   771   627   206   264    10   348   768
-   424   557   993    77    49   282   632   407   724   397
-   937   867   892   771   627   206   264    10   348   768
+   504   184   356   480    80   152   558   874   158   212
+
 ```
 
 Now read 2 records
@@ -192,22 +207,28 @@ reader.NumRecords = 2;
 Similarly using Property/Value pairs
 
 ```
-reader.read('NumRecords',2)
+reader.read('NumRecords',2)   
 
 ans =
 
-   424   557   993    77    49   282   632   407   724   397
-   937   867   892   771   627   206   264    10   348   768
-   424   557   993    77    49   282   632   407   724   397
-   937   867   892   771   627   206   264    10   348   768
-   424   557   993    77    49   282   632   407   724   397
-   937   867   892   771   627   206   264    10   348   768
+  Columns 1 through 8
+
+         946         265         317         933         196         529         366         108
+         632        1003         927         681         789         107         670         192
+
+  Columns 9 through 10
+
+         636         478
+         355         338
 ```
 
 Capture the sync point, for future use.
 
 ```
 pos = reader.previousSync
+pos =
+
+        1054
 ```
 
 Read some more records, two at a time.

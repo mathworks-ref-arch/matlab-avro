@@ -27,7 +27,10 @@ Start MATLAB and update the MATLAB path. A startup script has been provided for 
 cd Software/MATLAB/
 startup
 
-```
+```  
+The startup script checks if the required packages are added to the static path. To set the static path, create a javaclasspath.txt file in the [prefdir](https://www.mathworks.com/help/matlab/ref/prefdir.html) folder. Add the path to the Avro JAR file in javaclasspath.txt.
+
+More information on setting the static class path is [here](https://www.mathworks.com/help/matlab/matlab_external/static-path.html). Restart MATLAB after adding the path for the Avro JAR package.   
 
 4. Run unit tests  
 Run the unit tests using MATLAB's test framework. Please see the [documentation](BasicUsage.md) and  study the tests under the *test/unit* folder to understand the capabilities of this package.  

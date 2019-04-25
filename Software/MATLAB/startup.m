@@ -4,7 +4,7 @@ function startup(varargin)
 % path. It will omit the SVN and other crud.  Modify undesired path
 % filter as desired.
 
-% Copyright (c) 2017, The MathWorks, Inc.
+% Copyright (c) 2019, The MathWorks, Inc.
 
 appStr = 'MATLAB Interface for Apache Avro';
 disp(appStr);
@@ -55,14 +55,20 @@ end
 
 %% Post path-setup operations
 disp('Running post setup operations');
-% Add jar to users static javaclasspath in prefdir
-jarfile = dir(fullfile(here, 'lib', 'jar', '*.jar'));
-if isempty(jarfile)
-    error('BIGDATA:AVRO','Unable to find the JAR file. Please build as per the documentation first');
+
+% Check and warn if it cannot find the JAR file
+jarFile = fullfile(here,'lib','jar','matlab-avro-sdk-0.2.jar');
+if ~exist(jarFile,'file')
+    % The JAR file needs to be built
+    warning('BIGDATA:Avro','Could not locate the JAR file. Please rebuild the JAR file using Maven');
 end
 
-% Add as dynamic jars
-arrayfun(@(x) javaaddpath(fullfile(x.folder, x.name)), jarfile)
+% Static path
+staticPaths = javaclasspath('-static');
+if ~any(strcmpi(staticPaths, jarFile))
+    % Could not locate the JAR file on the static path
+    warning('BIGDATA:Avro','Could not locate the JAR file on the static javaclasspath. Please refer to the documentation for installation steps.');
+end
 
 end
 

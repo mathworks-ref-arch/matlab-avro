@@ -45,7 +45,7 @@ if ~ nargin || isempty(file)
 end
 
 % Check if file exists
-if isempty(dir(file))
+if ~startsWith(file,"hdfs://") && isempty(dir(file))
     error(['avroread:FileNotFound ', file])
 end
 
