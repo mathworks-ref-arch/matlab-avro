@@ -1,8 +1,11 @@
 #  MATLAB&reg; Interface *for Apache Avro*™ - Release Notes
 
+## Release 0.7.1 (19th March 2020)
+* Updated the license, security.md and release notes.
+
 ## Release 0.7.0 (25 April 2019)
 * Support for reading and writing to HDFS
-* Updated the underlying JAR file 
+* Updated the underlying JAR file
 
 ## Release 0.6.0 (6 February 2019)
 * Support for reading Arrays
