@@ -1,5 +1,16 @@
 #  MATLAB&reg; Interface *for Apache Avro*™ - Release Notes
 
+## Release 0.8.1 (27 May 2020)
+* Updated security notices and copyrights
+* Numerous documentation fixes
+* Added support for mixed type tables and int8
+
+## Release 0.8.0 (11 May 2020)
+* Rewrite of Avro format support to provide thin MATLAB wrapper around the Java API for Avro
+* Updated the underlying JAR file
+* Support for nested structures, tables and cells
+* New unit tests
+
 ## Release 0.7.1 (19th March 2020)
 * Updated the license, security.md and release notes.
 

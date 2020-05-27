@@ -1,2 +1,6 @@
 *.crc 
-*.asv
+*.xml
+*.classpath
+*.project
+.settings
+.vscode/launch.json

@@ -1,11 +1,11 @@
-[//]: #  (Copyright 2017, The MathWorks, Inc.)
+[//]: #  (copyright 2017-2020, The MathWorks, Inc.)
 # MATLAB&reg; Interface *for Apache Avro*™
 
 ## System Requirements
-This module was built to run with [MATLAB](https://www.mathworks.com/support/sysreq.html) 2017b or newer.
+This module was built to run with [MATLAB](https://www.mathworks.com/support/sysreq.html) 2018b or newer.
 
 ### MathWorks Products (http://www.mathworks.com)
-* MATLAB (R2017b or later)
+* MATLAB (R2018b or later)
 
 ### 3rd Party Products
 To rebuild the underlying Java artifacts, the following tools are required.

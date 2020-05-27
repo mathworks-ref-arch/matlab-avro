@@ -1,12 +1,13 @@
 function startup(varargin)
-%% STARTUP - Script to add my paths to MATLAB path
+%% STARTUP Script to add my paths to MATLAB path
 % This script will add the paths below the root directory into the MATLAB
 % path. It will omit the SVN and other crud.  Modify undesired path
 % filter as desired.
 
-% Copyright (c) 2019, The MathWorks, Inc.
+% Copyright (c) 2017-2020, The MathWorks, Inc.
 
 appStr = 'MATLAB Interface for Apache Avro';
+avrofName = 'matlabavro-0.3.jar';
 disp(appStr);
 disp(repmat('-',1,numel(appStr)));
 
@@ -19,16 +20,12 @@ here = fileparts(mfilename('fullpath'));
 % Add the appropriate architecture binaries
 archDir = iGetArchSuffix(); %#ok<NASGU>
 
-rootDirs={fullfile(here,'app'),true;...
-    fullfile(here,'lib'),false;...
-    fullfile(here,'config'),false;...
-    fullfile(here,'script'),false;...
-    fullfile(here,'sys','modules'),true;...
-    fullfile(here,'public'),true;...
-    };
+% rootDirs={fullfile(here,'app'),true;...
+%     fullfile(here,'lib'),false;...    
+%     };
 
 %% Add the framework to the path
-iAddFilteredFolders(rootDirs);
+%iAddFilteredFolders(rootDirs);
 
 %% Handle the modules for the project.
 disp('Initializing all modules');
@@ -57,7 +54,9 @@ end
 disp('Running post setup operations');
 
 % Check and warn if it cannot find the JAR file
-jarFile = fullfile(here,'lib','jar','matlab-avro-sdk-0.2.jar');
+jarFile = fullfile(here,'lib','jar',avrofName);
+%appPath = fullfile(here,'@Avro');
+appPath = fullfile(here,'app','system');
 if ~exist(jarFile,'file')
     % The JAR file needs to be built
     warning('BIGDATA:Avro','Could not locate the JAR file. Please rebuild the JAR file using Maven');
@@ -67,7 +66,9 @@ end
 staticPaths = javaclasspath('-static');
 if ~any(strcmpi(staticPaths, jarFile))
     % Could not locate the JAR file on the static path
-    warning('BIGDATA:Avro','Could not locate the JAR file on the static javaclasspath. Please refer to the documentation for installation steps.');
+    fprintf('Java class path added for %s \n',avrofName);    
+    addpath(appPath);
+    javaaddpath(jarFile);
 end
 
 end
@@ -102,7 +103,7 @@ for pCount = 1:size(rootDirs,1)
 
 	% loop through path and remove all the .svn entries
 	if ~isempty(svnFilteredPath)
-		for pCount=1:length(svnFilteredPath), %#ok<FXSET>
+		for pCount=1:length(svnFilteredPath) %#ok<FXSET>
 			filterCheck=[svnFilteredPath{pCount},...
 				gitFilteredPath{pCount},...
 				slprjFilteredPath{pCount},...
@@ -120,20 +121,6 @@ for pCount = 1:size(rootDirs,1)
 
 end
 
-%% Post path-setup operations
-
-% Example: Change to a particular directory
-% cd( fullfile( here, 'examples' ) );
-
-% Example: Setup Simulink code generation folders
-%myCacheFolder = fullfile('C:','cachefolder');
-%myCodeGenFolder = pwd;
-%Simulink.fileGenControl('set', 'CacheFolder', myCacheFolder, ...
-%   'CodeGenFolder', myCodeGenFolder);
-
-% Example: Setup Java dynamic path
-%iSafeAddToJavaPath(fullfile(spellroot,'lib','java','MATLABSpellCheck','dist','MATLABSpellCheck.jar'));
-
 end
 
 %% Helper function to add to MATLAB path.
@@ -142,32 +129,13 @@ function iSafeAddToPath(pathStr)
 % Add to path if the file exists
 if exist(pathStr,'dir')
 	disp(['Adding ',pathStr]);
-	addpath(pathStr); %#ok<MCAP>
+	addpath(pathStr); 
 else
 	disp(['Skipping ',pathStr]);
 end
 
 end
 
-%% Helper function to add to the Dynamic Java classpath
-function iSafeAddToJavaPath(pathStr)
-
-% Check the current java path
-jPaths = javaclasspath('-dynamic');
-
-% Add to path if the file exists
-if exist(pathStr,'dir')
-	disp(['Adding ',pathStr]);
-	if ~strcmpi(pathStr, jPaths)
-	addpath(pathStr); %#ok<MCAP>
-	else
-		disp(['Skipping ',pathStr]);
-	end
-else
-	disp(['Skipping ',pathStr]);
-end
-
-end
 
 %% Helper function to add arch specific suffix
 function binDirName = iGetArchSuffix()

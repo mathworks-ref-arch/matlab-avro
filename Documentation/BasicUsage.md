@@ -1,9 +1,8 @@
-[//]: #  (Copyright 2017, The MathWorks, Inc.)
-# MATLAB&reg; Interface *for Apache Avro*™  
+# MATLAB Interface *for Apache Avro*
 
 ## Overview
-This package provides the ```avroread``` and ```avrowrite``` functions to serialize and deserialize Avro files.
-Help is also available from within MATLAB.
+This package provides a MATLAB® wrapper for the Apache Avro™ Java API to enable MATLAB developers to work with Avro files.
+Help for the MATLAB package is available from within MATLAB. Documentation on the Java API is available [here](https://avro.apache.org/docs/current/api/java/index.html)
 
 ## Data types and Schemas
 Avro files use schemas that are defined in JSON, with the following mapping between MATLAB data types:
@@ -17,7 +16,7 @@ Avro files use schemas that are defined in JSON, with the following mapping betw
 | uint16 | int |
 | uint32 | int |
 | uint64 | long |
-| char | string |  
+| char | string |
 | datetime | date |
 | duration | timestamp | (both milli and micro second)
 | datetime | time |      (both milli and micro second)
@@ -25,7 +24,8 @@ Avro files use schemas that are defined in JSON, with the following mapping betw
 
 In addition, the interface supports writing of the following MATLAB data types:
 
-- numeric | string arrays
+- numeric arrays
+- string arrays
 - table
 - timetable
 - struct
@@ -34,225 +34,247 @@ In addition, the interface supports writing of the following MATLAB data types:
 
 The schema can be inspected as well.
 
-## Write an Avro file
-Writing an array of numbers to file is easy using ```avrowrite```:
+## Writing to an Avro file
+
+Writing MATLAB data to an Avro file involves the following steps:
+
+- Define the schema for the data
+- Create a DataFileWriter object
+- Append the data using the DataFileWriter's append function
+
+To write an array of doubles, the MATLAB code is:
 
 ```matlab
-data = randn(1e5,10);
-avrowrite('tmp.avro', data);
+myData = 'Test string data.';
+
+% Create STRING schema.
+mySchema = matlabavro.Schema.create(matlabavro.SchemaType.STRING);
+
+% Create DataFileWriter for avro file
+myWriter = matlabavro.DataFileWriter();
+myWriter.createAvroFile(mySchema,'myFile.avro');
+
+% Append string data
+myWriter.append(myData);
+
+% Close the writer
+myWriter.close();
 ```
+## Reading from an Avro file
 
-Writing to HDFS:
+Reading from an Avro file involves the following steps:
 
-```
-% Replace the server address and user in hdfsURL with correct values.
-hdfsURL = "hdfs://\<server>/<user>/";
-hdfsFName = hdfsURL + "tmp.avro";
-avrowrite(hdfsFName,data);   
-```
+- Create a DataFileReader for the Avro file
+- Use the next() function to read a record
 
-
-## Read an Avro file
-Use ```avroread``` to read the values back in:
-
-```
-r = avroread('tmp.avro');
-```
-
-Reading from HDFS:
-
-```
-r = avroread(hdfsFName);   
+```matlab
+myReader = matlabavro.DataFileReader('myFile.avro');
+myReaderData = myReader.next();
+% Close the reader
+myReader.close();
 ```
 
 To ensure the values are equal:
 
+```matlab
+isequal(myData,myReaderData)
 ```
-isequal(data,r)
-```
-## Writing a Linear Spaced Vector to an Avro file
-When writing a linear spaced vector to an Avro file, note that the data should be transposed before writing to the file. This is because MATLAB stores data in column-major order.
-This behavior is similar to using [jsonencode](https://www.mathworks.com/help/matlab/ref/jsonencode.html) and [jsondecode](https://www.mathworks.com/help/matlab/ref/jsondecode.html) of data in MATLAB.
 
+The Schema class provides methods to create different types of Avro schema. For example, to create a Union Schema, use matlabavro.Schema.CreateUnion method.
+The list of supported methods in the Java API is [here](https://avro.apache.org/docs/current/api/java/index.html).
+
+## Writing metadata to an Avro file
+
+When writing MATLAB data types to Avro, it is sometimes necessary to store information such as number of rows, columns etc to ensure data symmetry when writing and reading.
+The DataFileWriter class provides a setMeta method that can be used to store meta information. For example, writing a row vector is shown below:
+
+```matlab
+myData = [1,2,3];
+mySchema = matlabavro.Schema.createArray(matlabavro.SchemaType.DOUBLE);
+myWriter = matlabavro.DataFileWriter();
+
+% Set Meta information
+myWriter.setMeta('rows',1);
+myWriter.setMeta('columns',3);
+
+myWriter.createAvroFile(mySchema,'myFile.avro');
+myWriter.append(myData);
+myWriter.close();
+
+% Verify equal
+myReader = matlabavro.DataFileReader('myFile.avro');
+myReaderData = myReader.next();
+myReader.close();
+isequal(myData,myReaderData)
 ```
-D1.x = linspace(0,6)';
-D1.y = sin(D1.x);
-fn = 'tmp.avro';
-avrowrite(fn, D1);
-D2 = avroread(fn);
-isequal(D1,D2)
+
+## Writing a MATLAB structure or table to an Avro file
+
+Writing a MATLAB structure to an Avro file requires the creation of a RECORD schema. The matlabavro package provides a method to automatically generate
+schema for a MATLAB structure or table. The below code shows an example of how this can be done.
+
+```matlab
+myData.x = 'test data';
+myData.y = 25;
+
+% Generate schema for struct automatically by parsing the data
+mySchema = matlabavro.Schema.createSchemaForData(myData);
+
+% Create a writer, append data and close
+myWriter = matlabavro.DataFileWriter();
+myWriter.createAvroFile(mySchema,'myFile.avro');
+myWriter.append(myData);
+myWriter.close();
+```
+
+## Writing a Linear Spaced Vector to an Avro file
+
+When writing a linear spaced vector to an Avro file, there are two options:
+1. Store meta information for dimension when writing the file using the setMeta method as shown above. When reading, the meta information can be used to reshape the
+vector to the correct dimension.
+2. Transpose the data before writing to the file. This is because MATLAB stores data in column-major order.
+
+This behavior is similar to using [jsonencode](https://www.mathworks.com/help/matlab/ref/jsonencode.html) and [jsondecode](https://www.mathworks.com/help/matlab/ref/jsondecode.html) of data in MATLAB.
+An example using transpose is shown below:
+
+```matlab
+% Transpose example for a row vector.
+myData = [1,2,3]';
+mySchema = matlabavro.Schema.createArray(matlabavro.SchemaType.DOUBLE);
+myWriter = matlabavro.DataFileWriter();
+myWriter.createAvroFile(mySchema,'myFile.avro');
+myWriter.append(myData);
+myWriter.close();
+% Verify equal
+myReader = matlabavro.DataFileReader('myFile.avro');
+myReaderData = myReader.next();
+myReader.close();
+isequal(myData,myReaderData)
+```
+## Writing int8 values to an Avro file
+
+When writing MATLAB int8 values to Avro, the data type maps to Avro schema 'bytes'. The append method of the DataFileWriter uses a Java byte buffer object to write the data in Avro format. Use the below example to write int8 values:
+
+```matlab
+% Transpose example for a row vector.
+myData = int8[1,2,3]';
+mySchema = matlabavro.Schema.parse('{"type": "bytes"}');
+myWriter = matlabavro.DataFileWriter();
+myWriter.createAvroFile(mySchema,'myFile.avro');
+myWriter.append(myData)
+myWriter.close();
+% Verify equal
+myReader = matlabavro.DataFileReader('myFile.avro');
+myReaderData = myReader.next();
+myReader.close();
+isequal(myData,myReaderData)
 ```
 
 ## Serialization of MATLAB objects to Avro files
 Data packed in user defined objects or array of objects can be persisted into Avro files.
 
-For example:
-
+Create a MATLAB class user:
 ```matlab
-ex = example.user;
-ex.name = 'Test';
-ex.number = 42;
-ex.color = 'ultraviolet';
+classdef user
+    %USER Class to test writing MATLAB objects to Avro
+    properties
+        name
+        age
+        weight
+    end
+
+    methods
+        function obj = user()
+        end
+    end
+end
 ```
 
-To save the object as an Avro file:
+To write an object of class user, use the below code:
 
 ```matlab
-avrowrite('example.avro',ex);   
-```
-## Deserialization of MATLAB objects from Avro files
-The deserialization of MATLAB objects works equally simply.
-
-```matlab
-user = avroread('example.avro')
-
-user =
-
-  user with properties:
-
-      name: 'Test'
-    number: 42
-     color: 'ultraviolet'
-```
-
-## Vectorization
-The serialization support extends to arrays of objects. This allows code to be vectorized.
-
-For example, let us create an array of a 100 users.
-
-```matlab
-n = 100;
-containerObjs = repmat(example.user, n,1);
-```
-
-Populating them with random data:
-
-```matlab
-names  = cellfun(@(x) char(randi([65 122],15,1))', cell(n,1)','UniformOutput',false)';
-colors = cellfun(@(x) char(randi([65 122],15,1))', cell(n,1)','UniformOutput',false)';
-nums   = num2cell(randi(1024,100,1));
-
-[containerObjs.name] = deal(names{:});
-[containerObjs.color] = deal(colors{:});
-[containerObjs.number] = deal(nums{:});
-```
-
-It is possible to save the data file by saving all elements of the array.
-
-```matlab
-avrowrite('sample.avro', containerObjs);
-```
-
-Save a slice of the data
-```matlab
-avrowrite('slice.avro', containerObjs(50:70));
-```
-
-## Appending data
-It is possible to append data to existing files. For example,
-using the same array of objects in the previous section, slices of this
-data can be appended to an avro file.
-
-```matlab
-avrowrite('growingfile.avro', [containerObjs(1:10).number]);   
-avrowrite('growingfile.avro', [containerObjs(11:20).number],'AppendToFile',true);   
-avrowrite('growingfile.avro',[containerObjs(21:30).number],'AppendToFile',true)   
-avrowrite('growingfile.avro', [containerObjs(31:40).number],'AppendToFile',true);   
+myData = user();
+myData.name ='test';
+myData.age = 42;
+myData.weight = 155;
+props = properties(myData);
+mySchema = matlabavro.Schema.createSchemaForData(myData);
+myWriter = matlabavro.DataFileWriter();
+% Set metadata isObject to 1
+myWriter.setMeta('isObject',1);
+myWriter.createAvroFile(mySchema,'myFile.avro');
+myWriter.append(myData);
+myWriter.close();
+% Verify equal
+myReader = matlabavro.DataFileReader('myFile.avro');
+myReaderData = myReader.next();
+myReader.close();
+isequal(myData,myReaderData)
 
 ```
 
 ## Test sync markers
 
-Lets seek to an arbitrary position first, it will seek to the next sync
-marker automatically since the file has been written with sync markers.
+The matlabavro package exposes the seek, sync, tell methods which can be used for seeking to an arbitrary position.
 
-```
-[data,reader] = avroread('growingfile.avro','NumRecords',1,...
-    'SeekPosition',-1,'UseSyncToSeek',false)   
+```matlab
+mySchema = matlabavro.Schema.create(matlabavro.SchemaType.DOUBLE);
+myWriter = matlabavro.DataFileWriter();
+myWriter = myWriter.createAvroFile(mySchema,'myFile.avro');
 
-data =
+% Define data to write
+D1 = 100;
+D2 = 200;
+D3 = 300;
+D4 = 400;
 
-   510   326   287   901   195   273    68   151   635   575
+% Write the data and get sync marker for each
+myWriter.append(D1);
+D2Pos = myWriter.sync();
+myWriter.append(D2);
+D3Pos = myWriter.sync();
+myWriter.append(D3);
+D4Pos = myWriter.sync();
+myWriter.append(D4);
 
+% Define a DataFileReader
+myReader = matlabavro.DataFileReader('myFile.avro');
 
-reader =
+% To read the value D4, seek using the sync marker from the append method. D7 now has the value for D4
+myReader.seek(D4Pos);
+D7 = myReader.next();
+% To read the value D3, seek using the sync marker from the append method. D6 now has the value for D3
+myReader.seek(D3Pos);
+D6 = myReader.next();
+% To read the value D2, seek using the sync marker from the append method. D5 now has the value for D2
+myReader.seek(D2Pos);
+D5 = myReader.next();
 
-  Reader with properties:
+% Verify equal
+isequal(D2,D5)
+isequal(D3,D6)
+isequal(D4,D7)
 
-         FileName: 'growingfile.avro'
-     SeekPosition: -1
-       NumRecords: 1
-     FileEncoding: BINARY
-    UseSyncToSeek: 0
+% Close reader and writer
+myWriter.close();
+myReader.close();
 
-```
-
-Read the next record, switch the seek position off by setting < 0
-
-```
-reader.read('SeekPosition',-1)
-
-ans =
-
-   504   184   356   480    80   152   558   874   158   212
-
-```
-
-Now read 2 records
-
-```
-reader.NumRecords = 2;
-```
-
-Similarly using Property/Value pairs
-
-```
-reader.read('NumRecords',2)   
-
-ans =
-
-  Columns 1 through 8
-
-         946         265         317         933         196         529         366         108
-         632        1003         927         681         789         107         670         192
-
-  Columns 9 through 10
-
-         636         478
-         355         338
-```
-
-Capture the sync point, for future use.
-
-```
-pos = reader.previousSync
-pos =
-
-        1054
-```
-
-Read some more records, two at a time.
-
-```
-reader.read;
-reader.read;
-reader.read
-```
-
-Seek back to our sync point, *pos* from above
-
-```
-reader.read('SeekPosition',pos)
 ```
 
 ## Inspecting the Schema
+
 The schema from a stored file can be inspected.
 
 ```matlab
-reader = avroread;
-reader.getSchema('sample.avro')
+myReader = matlabavro.DataFileReader('myFile.avro');
+% Get MATLAB wrapper class for the Java Schema object
+mySchema = myReader.getSchema();
+
+% Print out schema as a JSON string:
+schemaString = mySchema.toString()
+
 ```
-The result is a JSON string that describes the schema of the file.
+Using the toString() method of the Schema class returns the JSON string that describes the schema of the file.
 
 ```json
  {
@@ -271,3 +293,5 @@ The result is a JSON string that describes the schema of the file.
        } ]
      }
 ```
+
+[//]: #  (Copyright 2017-2020, The MathWorks, Inc.)

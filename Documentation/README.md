@@ -1,4 +1,4 @@
-[//]: #  (Copyright 2017, The MathWorks, Inc.)
+[//]: #  (copyright 2017-2020, The MathWorks, Inc.)
 # MATLAB&reg; Interface *for Apache Avro*™
 
 [Apache Avro™](https://avro.apache.org/) is a data serialization system.
@@ -28,19 +28,18 @@ Avro provides functionality similar to systems such as Thrift, Protocol Buffers,
 *No manually-assigned field IDs*: When a schema changes, both the old and new schema are always present when processing data, so differences may be resolved symbolically, using field names.
 
 ## Contents:
-1. [System Requirements](Requirements.md)   
+1. [System Requirements](Requirements.md)
 2. [Installing the support package](Installation.md)
 3. [Basic usage](BasicUsage.md)
 4. API reference
 
-    The functions and classes for working with Apache Parquet files in MATLAB.
+    The functions and classes for working with Apache Avro files in MATLAB.
 
    The markdown versions of the help may not include all links and one should consult the shipped Help documentation for full documentation set.
 
-    - [Functions](Functions.md)
-    - [Classes](Classes.md)
+    - [API Documentation](../Documentation/api/)
 5. Appendix
-    - [Rebuilding the JAR](Rebuild.md)  
+    - [Rebuilding the JAR](Rebuild.md)
 
-## References:  
-Please see https://avro.apache.org/docs/current.
+## References:
+ [https://avro.apache.org/docs/current](https://avro.apache.org/docs/current)

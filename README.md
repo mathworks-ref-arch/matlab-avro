@@ -36,9 +36,9 @@ Please see the [documentation](Documentation/Installation.md) for detailed insta
 To install the interface, first build the JAR file.
 ```bash
 cd Software/Java
-mvn clean package
+mvn dependency:copy
 ```  
-The maven build places the Avro package in the location <path>/Software/MATLAB/lib/jar/. Note the full path to the JAR file as this should be added to the static path in the next step.  
+The maven build places the Avro package in the location ```/Software/MATLAB/lib/jar/```. Note the full path to the JAR file as this should be added to the static path in the next step.  
 
 ### Install the MATLAB package
 Open MATLAB and install the support package.
@@ -52,15 +52,29 @@ The startup script checks if the required packages are added to the static path.
 
 To write a variable to an Avro file:
 ```MATLAB
-data = randn(1e2,5);
-avrowrite('tmp.avro', data);
+myData = 'Test string data.';
+
+% Create STRING schema.
+mySchema = matlabavro.Schema.create(matlabavro.SchemaType.STRING);
+
+% Create DataFileWriter for avro file
+myWriter = matlabavro.DataFileWriter();
+myWriter.createAvroFile(mySchema,'myFile.avro');
+
+% Append string data
+myWriter.append(myData);
 ```
 
 The same file can be read with
 ```MATLAB
-tmp = avroread('tmp.avro');
+myReader = matlabavro.DataFileReader('myFile.avro');
+myReaderData = myReader.next();
 ```
-
+Always close the reader and writer objects
+```MATLAB
+myReader.close();
+myWriter.close();
+```
 A few unit tests are provided in the Software/MATLAB/test/unit folder. These can be run with
 ```MATLAB
 cd Software/MATLAB/test/unit;
