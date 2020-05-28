@@ -17,8 +17,8 @@ classdef testDataFileReader < matlab.unittest.TestCase
         reader
     end
     methods (TestMethodSetup)
-        function testSetup(testCase)
-            testCase.reader = matlabavro.DataFileReader(fullfile(fileparts(mfilename('fullpath')),'data','twitter.avro'));            
+        function testSetup(testCase)           
+            testCase.reader = matlabavro.DataFileReader(fullfile(fileparts(mfilename('fullpath')),'data','myData.avro'));            
         end
     end
     
@@ -36,19 +36,20 @@ classdef testDataFileReader < matlab.unittest.TestCase
             testCase.verifyEqual(D1.Type,D2.Type);
         end
         function testGetMetaKeys(testCase)
-            D1 = ["avro.codec";"avro.schema"];
+            D1 = ["avro.schema"];
             D2 = testCase.reader.getMetaKeys();
             testCase.verifyEqual(D1,D2);
         end
         function testGetMetaString(testCase)
-            D1 = "null";
-            D2 = testCase.reader.getMetaString('avro.codec');
-            testCase.verifyEqual(D1,D2);
+            D2 = testCase.reader.getMetaString('avro.schema');
+            testCase.assertNotEmpty(D2);
         end
         function testNext(testCase)
-            D1.username = 'miguno';
-            D1.tweet = 'Rock: Nerf paper, scissors is fine.';
-            D1.timestamp = 1.366150681000000e+09;
+            D1.Age = 38;
+            D1.Smoker = true;
+            D1.Height = 71;
+            D1.Weight = 176;
+            D1.BloodPressure = 124;
             D2 = testCase.reader.next();
             testCase.verifyEqual(D1,D2);
         end

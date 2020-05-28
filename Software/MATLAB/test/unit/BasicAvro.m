@@ -59,6 +59,16 @@ classdef BasicAvro < matlab.unittest.TestCase
             D2 = testCase.dfr.next();
             testCase.verifyEqual(D1, D2, 'The values read should be as written.');
         end
+         function testScalarChar(testCase,Compression)
+            testCase.schema = testCase.schema.create(matlabavro.SchemaType.STRING);
+            testCase.dfw.compressionType = Compression;
+            testCase.dfw.createAvroFile(testCase.schema,testCase.fn);
+            D1 = "b";
+            testCase.dfw.append(D1);
+            testCase.dfr = matlabavro.DataFileReader(testCase.fn);
+            D2 = string(testCase.dfr.next());
+            testCase.verifyEqual(D1, D2, 'The values read should be as written.');
+        end
         function testScalarSeekSync(testCase,Compression)
             testCase.schema = testCase.schema.create(matlabavro.SchemaType.DOUBLE);
             testCase.dfw.compressionType = Compression;
@@ -175,6 +185,16 @@ classdef BasicAvro < matlab.unittest.TestCase
         
         function testStruct(testCase,Compression)
             D1 = getStruct(5e3);
+            testCase.schema = testCase.schema.createSchemaForData(D1);
+            testCase.dfw.compressionType = Compression;
+            testCase.dfw.createAvroFile(testCase.schema,testCase.fn);
+            testCase.dfw.append(D1);
+            testCase.dfr = matlabavro.DataFileReader(testCase.fn);
+            D2 = testCase.dfr.next();
+            testCase.verifyEqual(D1, D2, 'The values read should be as written.');
+        end
+        function testStructWithSingleChar(testCase,Compression)
+            D1 = struct('b','a')
             testCase.schema = testCase.schema.createSchemaForData(D1);
             testCase.dfw.compressionType = Compression;
             testCase.dfw.createAvroFile(testCase.schema,testCase.fn);

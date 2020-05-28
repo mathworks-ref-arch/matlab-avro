@@ -17,7 +17,9 @@ classdef AvroHelper
                 data = table2struct(data,'ToScalar',true);
             end
             outRecord = data;
-            if isstruct(data) || isobject(data)
+            if isa(data,'char') || isa(data,'string')
+                outRecord = java.lang.String(data);
+            elseif isstruct(data) || isobject(data)
                 if isenum(data)
                     genericRecord = javaObject('org.apache.avro.generic.GenericData$EnumSymbol',schema.jSchemaObj,string(data));
                     outRecord =  genericRecord;
@@ -29,7 +31,7 @@ classdef AvroHelper
                 bytesBuffer = java.nio.ByteBuffer.allocate(numel(data));
                 bytesBuffer.put(data);
                 bytesBuffer.rewind();
-                outRecord = bytesBuffer;
+                outRecord = bytesBuffer;            
             end
         end
         
@@ -129,9 +131,15 @@ classdef AvroHelper
                             bytesBuffer = java.nio.ByteBuffer.allocate(numel(data.(props{pCount})));
                             bytesBuffer.put(data.(props{pCount}));
                             bytesBuffer.rewind();
-                            genericRecord.put(props{pCount},bytesBuffer);
+                            genericRecord.put(props{pCount},bytesBuffer);                        
                         else
-                            genericRecord.put(props{pCount},data.(props{pCount}));
+                            %Required to handle single chars
+                            if (isa(data.(props{pCount}),'char') || isa(data.(props{pCount}),'string')) && length(data.(props{pCount})) == 1
+                                genericRecord.put(props{pCount},java.lang.String(data.(props{pCount})));
+                            else
+                                genericRecord.put(props{pCount},data.(props{pCount}));
+                            end
+                            
                         end
                     end
                 end
