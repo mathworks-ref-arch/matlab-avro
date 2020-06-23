@@ -1,4 +1,4 @@
 language: java
 dist: xenial
-install: wget -qO- --retry-connrefused https://storage.googleapis.com/matlabimagesus/public/install.sh | sudo -E bash
+install: wget -qO- --retry-connrefused https://ssd.mathworks.com/supportfiles/ci/ephemeral-matlab/v0/install.sh | sudo -E bash
 script: cd Software/Java; mvn dependency:copy; matlab -batch "cd ../../Software/MATLAB; startup; cd test/unit; runtests; exit(any(table(ans).Failed));"
