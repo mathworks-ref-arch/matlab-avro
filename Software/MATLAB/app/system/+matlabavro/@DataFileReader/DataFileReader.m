@@ -23,7 +23,7 @@ classdef DataFileReader < handle
             %% DataFileReader Constructor            
             %   fName - file path for Avro file
             validateattributes(fName,{'char'},{});
-            import import org.apache.avro.generic.*;
+            import org.apache.avro.generic.*;
             import org.apache.avro.file.*;
             obj.jDatumObj = GenericDatumReader();
             

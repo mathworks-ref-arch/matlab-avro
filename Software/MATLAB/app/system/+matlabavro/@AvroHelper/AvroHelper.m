@@ -12,7 +12,7 @@ classdef AvroHelper
             %   data - MATLAB data to append
             
             validateattributes(schema,{'matlabavro.Schema'},{});
-            import import org.apache.avro.generic.*;
+            import org.apache.avro.generic.*;
             if(istable(data) || isa(data,'timetable'))
                 data = table2struct(data,'ToScalar',true);
             end

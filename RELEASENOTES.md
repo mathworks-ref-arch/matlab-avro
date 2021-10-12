@@ -1,5 +1,9 @@
 #  MATLAB&reg; Interface *for Apache Avro*™ - Release Notes
 
+## Release 0.8.3 (12 Oct 2021)
+* Fixed syntax errors.
+* Added data type info.
+
 ## Release 0.8.2 (28 May 2020)
 * Updated test cases for DataFileReader
 * Support for byte array, int8, structure, table and nested structure
