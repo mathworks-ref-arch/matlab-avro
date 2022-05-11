@@ -38,9 +38,9 @@ Please see the [documentation](Documentation/Installation.md) for detailed insta
 To install the interface, first build the JAR file.
 ```bash
 cd Software/Java
-mvn dependency:copy
+mvn clean package
 ```  
-The maven build places the Avro package in the location ```/Software/MATLAB/lib/jar/```. Note the full path to the JAR file as this should be added to the static path in the next step.  
+The maven build places the Avro package in the location ```/Software/MATLAB/lib/jar/```. Note the full path to the JAR file as this should be added to the MATLAB Java classpath path in the next step.  
 
 ### Install the MATLAB package
 Open MATLAB and install the support package.
@@ -48,7 +48,7 @@ Open MATLAB and install the support package.
 cd Software/MATLAB
 startup
 ```
-The startup script checks if the required packages are added to the static path. To set the static path, see [detailed instructions to install](Documentation/Installation.md).  
+The startup script checks if the required packages are added to the MATLAB paths. If the JAR file is not already added to the MATLAB static Java class path, the startup script will automatically add it to the dynamic classpath. Using the static class path may result in better performance. To set the static path, see [detailed instructions to install](Documentation/Installation.md).  
 
 ## Getting Started
 
@@ -91,7 +91,7 @@ See [documentation](Documentation/README.md) for more information.
 
 
 ## License
-The license for MATLAB interface *for Avro* is available in the [LICENSE.md](LICENSE.md) file in this GitHub repository.
+The license for MATLAB interface *for Avro* is available in the [LICENSE.TXT](LICENSE.TXT) file in this GitHub repository.
 This package uses certain third-party content which is licensed under separate license agreements.
 See the [pom.xml](Software/Java/pom.xml) file for third-party software downloaded at build time.
 

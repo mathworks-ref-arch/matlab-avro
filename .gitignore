@@ -4,3 +4,4 @@
 *.project
 .settings
 .vscode/launch.json
+Internal/

@@ -29,11 +29,11 @@ The JAR library can be rebuilt using:
 ```bash
 cd Software/Java
 
-mvn dependency:copy
+mvn package
 [INFO] Scanning for projects...
 [INFO]
-[INFO] ---------------< com.mathworks.avro.sdk:matlab-avro-sdk >---------------
-[INFO] Building MATLAB Interface for Avro 0.2
+[INFO] -----------------< com.mathworks.avro.sdk:matlabavro >------------------
+[INFO] Building MATLAB Interface for Avro 0.4
 [INFO] --------------------------------[ jar ]---------------------------------
 [INFO]
 [INFO] --- maven-dependency-plugin:3.1.1:copy (default-cli) @ matlab-avro-sdk ---

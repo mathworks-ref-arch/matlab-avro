@@ -1,7 +1,7 @@
 classdef Field < handle
     %% FIELD - A field within a record
              
-    % (c) 2020 MathWorks, Inc.
+    % Copyright (c) 2020 MathWorks, Inc.
     properties
         name
         schema

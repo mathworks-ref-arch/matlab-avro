@@ -12,7 +12,7 @@ classdef testDataFileReader < matlab.unittest.TestCase
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% Please add your test cases below
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % (c) 2020 MathWorks, Inc.
+    % Copyright (c) 2020 MathWorks, Inc.
     properties
         reader
     end
@@ -36,7 +36,7 @@ classdef testDataFileReader < matlab.unittest.TestCase
             testCase.verifyEqual(D1.Type,D2.Type);
         end
         function testGetMetaKeys(testCase)
-            D1 = ["avro.schema"];
+            D1 = "avro.schema";
             D2 = testCase.reader.getMetaKeys();
             testCase.verifyEqual(D1,D2);
         end

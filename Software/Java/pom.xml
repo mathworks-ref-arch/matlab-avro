@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright (c) 2020-2022 MathWorks, Inc -->
 <project
     xmlns="http://maven.apache.org/POM/4.0.0"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -7,49 +8,103 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.mathworks.avro.sdk</groupId>
     <artifactId>matlabavro</artifactId>
-    <version>0.3</version>
+    <version>0.4</version>
     <packaging>jar</packaging>
     <name>MATLAB Interface for Avro</name>
+
+    <organization>
+        <name>MathWorks</name>
+        <url>www.mathworks.com</url>
+    </organization>
     
     <properties>    
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>    
-        <avro.version>1.9.2</avro.version>        
     </properties>
     
     <dependencies>
         <dependency>
             <groupId>org.apache.avro</groupId>
             <artifactId>avro</artifactId>
-            <version>${avro.version}</version>
+            <version>1.11.0</version>
         </dependency>    
+		
+		<dependency>
+			<groupId>org.xerial.snappy</groupId>
+			<artifactId>snappy-java</artifactId>
+			<version>1.1.8.4</version>
+        </dependency> 
+
+		<dependency>
+		   <groupId>junit</groupId>
+		   <artifactId>junit</artifactId>
+		   <version>4.13.2</version>
+		   <scope>test</scope>
+		</dependency>		
+
     </dependencies>
     
     <build>
         <plugins>      
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <version>3.1.2</version>
-                <configuration>
-                    <artifactItems>
-                        <artifactItem>
-                            <groupId>org.apache.avro</groupId>
-                            <artifactId>avro</artifactId>
-                            <version>${avro.version}</version>
-                            <type>${project.packaging}</type>
-                            <overWrite>true</overWrite>
-                            <outputDirectory>../MATLAB/lib/jar</outputDirectory>
-                            <destFileName>${project.artifactId}-${project.version}.jar</destFileName>
-                        </artifactItem>
-                    </artifactItems>
-                </configuration>
-            </plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.8.1</version>
+				<configuration>
+					<source>1.7</source>
+					<target>1.7</target>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<!-- Build an executable JAR -->
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>2.4</version>
+				<configuration>
+					<archive>
+						<manifest>
+							<mainClass>com.mathworks.matlabavro.App</mainClass>
+						</manifest>
+					</archive>
+					<outputDirectory>../MATLAB/lib/jar</outputDirectory>
+				</configuration>
+			</plugin>
+			
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<version>3.2.0</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<configuration>
+							<filters>
+								<filter>
+									<artifact>*:*</artifact>
+									<excludes>
+										<exclude>META-INF/*.SF</exclude>
+										<exclude>META-INF/*.DSA</exclude>
+										<exclude>META-INF/*.RSA</exclude>
+									</excludes>
+								</filter>
+							</filters>
+							<relocations>
+								<relocation>
+									<pattern>org.apache.http</pattern>
+									<shadedPattern>shaded.org.apache.http</shadedPattern>
+								</relocation>
+							</relocations>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
         </plugins>
     </build>
-    
-    <organization>
-        <name>MathWorks</name>
-        <url>www.mathworks.com</url>
-    </organization>
+
     
 </project>

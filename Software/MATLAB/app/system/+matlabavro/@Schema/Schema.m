@@ -16,15 +16,19 @@ classdef Schema < handle
     % A 64-bit IEEE double-float; or
     % A boolean; or null.
        
-    % (c) 2020 MathWorks, Inc.
+    % Copyright (c) 2020-2022 MathWorks, Inc.
     
     properties(SetAccess = private)        
         Type
+    end
+    properties
+        dataMap
     end
     
     properties(Hidden) % public, doc
         jSchemaObj
         jFieldsObj = '';
+        jTypesObj = '';
     end
     
     methods
@@ -46,9 +50,13 @@ classdef Schema < handle
         function innerSchema = getElementType(obj)
             %% If schema is an array, returns its element type.
             
+            % create valid schema object for return
             innerSchema = matlabavro.Schema();
-            if(obj.Type ==matlabavro.SchemaType.ARRAY)
+
+            % if the obj Type is array, dig into the inner schema
+            if(obj.Type == matlabavro.SchemaType.ARRAY)
                 innerSchema.jSchemaObj = obj.jSchemaObj.getElementType();
+
             end
         end
         
@@ -88,28 +96,99 @@ classdef Schema < handle
             
             str = string(obj.jSchemaObj.toString());
         end
-        
+ 
+        function allTypes = getTypes(obj)
+            %% Return all included types for Avro Union
+
+            validateattributes(obj.Type,{'matlabavro.SchemaType'},{});
+            if(~isequal(obj.Type,matlabavro.SchemaType.UNION))
+                warning('matlabavro:Schema:getTypesInvalidSchemaType', ...
+                    'getTypes is only supported for UNION schema type');
+                return;
+            end
+
+
+            try
+                % Get Types
+                obj.jTypesObj = obj.jSchemaObj.getTypes();
+                unionTypes = toArray(obj.jTypesObj);
+                allTypes = cell(1,numel(unionTypes));
+            
+                % Create matlabavro schema for each type
+                for n = 1:numel(unionTypes)
+                    typeSchema = unionTypes(n);
+                    schemaString = string(typeSchema.toString());
+                    schemaObj = matlabavro.Schema.parse(schemaString);
+
+                    allTypes{n} = schemaObj;
+                end
+
+            catch ME
+                newException = MException(...
+                    'matlabavro:Schema:getTypes', ...
+                    "Unable to create matlabavro scheme objects for Avro Union types.");
+
+                newException = newException.addCause(ME);
+                throw(newException)
+            end
+
+        end
+
         function allFields = getFields(obj)
             %% If schema is a record, gets all fields.
             
             validateattributes(obj.Type,{'matlabavro.SchemaType'},{});
             if(~isequal(obj.Type,matlabavro.SchemaType.RECORD))
-                warning('getFields is only supported for RECORD schema type');
+                warning('matlabavro:Schema:getFieldInvalidSchemaType', ...
+                    'getFields is only supported for RECORD schema type');
                 return;
             end
-            obj.jFieldsObj = obj.jSchemaObj.getFields();
-            schemaFields = toArray(obj.jFieldsObj);
-            allFields = cell(1,numel(schemaFields));
-            for n = 1:numel(schemaFields)
-                name = schemaFields(n).name;
-                schema = matlabavro.Schema();
-                schema.jSchemaObj = schemaFields(n).schema;
-                allFields{n} = matlabavro.Field(name, schema,schemaFields(n).doc,schemaFields(n).defaultVal);
+
+
+            try
+                obj.jFieldsObj = obj.jSchemaObj.getFields();
+                schemaFields = toArray(obj.jFieldsObj);
+                allFields = cell(1,numel(schemaFields));
+
+                for n = 1:numel(schemaFields)
+                    name = schemaFields(n).name;
+                    schema = matlabavro.Schema();
+                    schema.jSchemaObj = schemaFields(n).schema;
+
+                    aVal = schemaFields(n).defaultVal;
+
+                    basicAvroTypes = ["BOOLEAN", "BYTES", "DOUBLE", "FLOAT", "INT", "LONG"];
+                    thisType = string(schema.Type);
+
+                    if ismember(thisType, basicAvroTypes)
+                        % get avro type
+                        schemaChar = char(schema.jSchemaObj.toString());
+                        avroType = lower(jsondecode(schemaChar)); % R2017b jsondecode requires char input
+
+                        matlabType = matlabavro.getMATLABType(avroType);
+
+                        % cast value
+                        aVal = cast(aVal, matlabType);
+                    end
+
+                    allFields{n} = matlabavro.Field(name, schema,schemaFields(n).doc, aVal);
+                end
+
+            catch ME
+                newException = MException(...
+                    'matlabavro:Schema:getFields', ...
+                    "Unable to create matlabavro field objects for Avro record fields.");
+
+                newException = newException.addCause(ME);
+                throw(newException)
             end
+
         end
+
     end
+    
     methods (Static)
-        
+
         function obj = parse(varargin)
             %% Create Schema object by passing in JSON string.
             % Parse a schema from the provided string.
@@ -120,9 +199,12 @@ classdef Schema < handle
             try
                 obj.jSchemaObj = jSchemaParser.parse(varargin{1:end});
             catch ME                
-                displayMsg = 'Schema.parse: Error in parsing JSON string.';
-                disp(displayMsg);
-                error(ME.message);                
+                newException = MException('matlabavro:Schema:Parse', ...
+                    "Unable to parse JSON string: " + string(varargin{1:end}) + ".");
+
+                newException = newException.addCause(ME);
+                throw(newException)
+          
             end
         end
         
@@ -219,40 +301,17 @@ classdef Schema < handle
             obj.jSchemaObj = javaMethod('createUnion','org.apache.avro.Schema',A);
         end
         
-        function obj = createSchemaForObject(data)
-            %% Generate schema automatically for MATLAB object.
-            %   Use this method to automatically generate schema for MATLAB
-            %   objects.
+        function obj = createSchemaForData(data) 
+            tmpMap = containers.Map();
+            [schemaStructure,tmpMap] = matlabavro.getSchemaStructure(data,tmpMap);
             
-            props = properties(data);
-            for pCount = 1 : numel(props)
-                fieldStruct = struct('name',[],'type','');
-                fieldStruct.name = props{pCount};
-                fieldStruct.type = class(props{pCount});
-                schema.fields = [schema.fields,{fieldStruct}];
-            end
-        end
-        
-        function obj = createSchemaForData(data)
-            %% Generate schema for data to be saved in avro format.
-            %   Use this method to automatically generate schema for MATLAB
-            %   structure, cells and tables. Remember to set the metadata
-            %   information for dimensions.
-            
-            if isa(data,'table')
-                data = table2struct(data,'ToScalar',true);
-            elseif isa(data,'timetable')
-                data = table2struct(data,'ToScalar',true);
-            elseif isa(data,'cell')
-                data = cell2mat(data);
-            end
-            schemaStructure = matlabavro.getSchemaStructure(data);
+            %JSON encode and cleanup
             schemaString = jsonencode(schemaStructure);
-            %check for array of arrays
             schemaString = strrep(strrep(schemaString,'[[','['),']]',']');
             obj = matlabavro.Schema();
             obj = obj.parse(schemaString);
-            
+            obj.dataMap = tmpMap;
         end
+        
     end    
 end

@@ -1,7 +1,7 @@
 classdef SchemaType 
     %% SchemaType Enumeration for Avro Schema Types
     
-    % (c) 2020 MathWorks, Inc.
+    % Copyright (c) 2020 MathWorks, Inc.
     enumeration
         ARRAY 
         BOOLEAN

@@ -1,7 +1,7 @@
 classdef AvroSerializer    
     %% AVROSERIALIZER Serialize MATLAB data using binary or JSON encoder    
     
-    % (c) 2020 MathWorks, Inc.
+    % Copyright (c) 2020 MathWorks, Inc.
     
     methods(Static)
         

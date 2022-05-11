@@ -12,38 +12,31 @@ classdef testSchema < matlab.unittest.TestCase
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% Please add your test cases below
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % (c) 2020 MathWorks, Inc.s
+    % Copyright (c) 2020 MathWorks, Inc.
     properties
         schema
         className
     end
     
     methods (TestMethodSetup)
-        
+
         function testSetup(testCase)
             testCase.schema = matlabavro.Schema;
             testCase.className = 'matlabavro.Schema';
         end
     end
-    
-    methods (TestMethodTeardown)
-       
-        function testTearDown(testCase)
-            
-        end
-    end
-    
+
     methods (Test)
-        
+
         function testParse(testCase)
             schemaString = '{"type":"double"}';
             D1 = matlabavro.SchemaType.DOUBLE;
             D2 = testCase.schema.parse(schemaString);
             testCase.verifyEqual(testCase.className, class(D2));
             testCase.verifyEqual(D1, matlabavro.SchemaType.(char(D2.Type)));
-            
+
         end
-        
+
         function testCreate(testCase)
             D1 = matlabavro.SchemaType.BYTES;
             D2 = testCase.schema.create(D1);
@@ -128,8 +121,9 @@ classdef testSchema < matlab.unittest.TestCase
         function testSetGetFields(testCase)
             tmpSchema = testCase.schema.createRecord('recName','','com.mathworks.avro',false);
             tmpSchema2 = testCase.schema.create(matlabavro.SchemaType.INT);
-            f1 = matlabavro.Field("new1", tmpSchema2,'',20);
-            f2 = matlabavro.Field("new2", tmpSchema2,'',20);
+            intVal = int32(20);
+            f1 = matlabavro.Field("new1", tmpSchema2,'',intVal);
+            f2 = matlabavro.Field("new2", tmpSchema2,'',intVal);
             D1 = {f1, f2};
             tmpSchema.setFields(D1);
             D2 = tmpSchema.getFields();
@@ -154,12 +148,20 @@ classdef testSchema < matlab.unittest.TestCase
         end
         
         function testCreateSchemaForRowVector(testCase)
+            % row becomes 2D matrix in column major world
             D1 = matlabavro.SchemaType.ARRAY; 
-            D1ElementType = matlabavro.SchemaType.DOUBLE;
+            D1InnerType = matlabavro.SchemaType.DOUBLE;
+
             input = [1,2,3];
             D2 =  testCase.schema.createSchemaForData(input);
-            testCase.verifyEqual(D1, D2.Type);           
-            testCase.verifyEqual(D1ElementType, D2.getElementType.Type);           
+            
+            testCase.verifyEqual(D2.Type, D1);
+
+            D3 = D2.getElementType;
+            testCase.verifyEqual(D3.Type, D1);
+
+            D4 = D3.getElementType;
+            testCase.verifyEqual(D4.Type, D1InnerType);
         end
         
         function testCreateSchemaForColumnVector(testCase)
@@ -200,10 +202,27 @@ classdef testSchema < matlab.unittest.TestCase
         end 
         
         function testCreateSchemaForSimpleCellArray(testCase)
-            input = {1, 2, 3; 4,5,6};           
-            D1 = matlabavro.SchemaType.DOUBLE;
-            D2 =  testCase.schema.createSchemaForData(input);            
-            testCase.verifyEqual(D1,D2.getElementType.getElementType.Type);     
+            input = {1, 2, 3; 4,5,6};
+            
+            % Expected types
+            expectedArrayType = matlabavro.SchemaType.ARRAY;
+            expectedDoubleType = matlabavro.SchemaType.DOUBLE;
+            expectedUnionType = matlabavro.SchemaType.UNION;
+            
+            % Test creation of schema
+            D2 =  testCase.schema.createSchemaForData(input);
+
+            % Cell should be represented as an Avro UNION
+            testCase.verifyEqual(D2.Type, expectedUnionType);
+
+            firstType = D2.getTypes{1};
+            D3 = firstType.Type;
+            D4 = firstType.getElementType().Type;
+            D5 = firstType.getElementType().getElementType().Type;
+
+            testCase.verifyEqual(D3, expectedArrayType);
+            testCase.verifyEqual(D4, expectedArrayType);
+            testCase.verifyEqual(D5, expectedDoubleType);
         end
         
         function testCreateSchemaForTable(testCase)
@@ -212,27 +231,47 @@ classdef testSchema < matlab.unittest.TestCase
             Smoker = [1;0;1;0;1];
             Height = [71;69;64;67;64];
             Weight = [176;163;131;133;119];            
-            input = table(LastName,Age,Smoker, Height,Weight);           
-            D2 = testCase.schema.createSchemaForData(input);     
-            D2Fields = D2.getFields();            
-            innerType1 = D2Fields{1}.schema.getElementType.Type;
-            innerType2 = D2Fields{2}.schema.getElementType.Type;
-            innerType3 = D2Fields{3}.schema.getElementType.Type;
-            innerType4 = D2Fields{4}.schema.getElementType.Type;
-            testCase.verifyEqual(matlabavro.SchemaType.RECORD,D2.Type);     
-            testCase.verifyEqual(matlabavro.SchemaType.STRING,innerType1);     
-            testCase.verifyEqual(matlabavro.SchemaType.DOUBLE,innerType2);     
-            testCase.verifyEqual(matlabavro.SchemaType.DOUBLE,innerType3);     
-            testCase.verifyEqual(matlabavro.SchemaType.DOUBLE,innerType4);     
+            input = table(LastName, Age, Smoker, Height, Weight);           
+            D2 = testCase.schema.createSchemaForData(input);
+
+            D2Fields = D2.getFields();
+
+            expectedRecordType = matlabavro.SchemaType.RECORD;
+            expectedArrayType = matlabavro.SchemaType.ARRAY;
+            expectedStringType = matlabavro.SchemaType.STRING;
+            expectedDoubleType = matlabavro.SchemaType.DOUBLE;
+
+            % MATLAB Table will be an Avro record
+            testCase.verifyEqual(D2.Type, expectedRecordType);
+
+            % First field should be string
+            nameField = D2Fields{1};
+            nameSchema = nameField.schema;
+            elementType = nameSchema.Type;
+            innerType = nameSchema.getElementType().Type;
+
+            testCase.verifyEqual(elementType, expectedArrayType);
+            testCase.verifyEqual(innerType, expectedStringType);
+
+            % remaining fields should be arrays of doubles
+            numVariables = width(input);
+            for colIdx = 2:numVariables
+                thisField = D2.getFields{colIdx};
+                thisSchema = thisField.schema;
+                elementType = thisSchema.Type;
+                innerType = thisSchema.getElementType().Type;
+
+                testCase.verifyEqual(elementType, expectedArrayType);
+                testCase.verifyEqual(innerType, expectedDoubleType);
+            end
         end
         
-        %TODO
-         function testCreateSchemaForComplexCellArray(testCase)
-            input = reshape(1:20,5,4)';           
+        function testCreateSchemaForMatrixFromData(testCase)
+            input = reshape(1:20,5,4)';
             D1 = matlabavro.SchemaType.ARRAY;
             D2 = testCase.schema.createSchemaForData(input);
-            testCase.verifyEqual(D1,D2.Type);      
-         end       
+            testCase.verifyEqual(D1,D2.Type);
+        end
     end
     
 end

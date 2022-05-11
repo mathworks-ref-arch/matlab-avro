@@ -8,7 +8,7 @@ Use Binary decoder to deserialize
 
 INPUT
 
-schema - matlabavro.Schema to use for serializing
+schema - matlabavro.Schema to use for deserializing
 
 bytes - byte array containing avro data conforming to schema
 

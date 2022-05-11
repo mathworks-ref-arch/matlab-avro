@@ -1,7 +1,7 @@
 classdef user
     %USER Class to test writing MATLAB objects to Avro
     
-    % (c) 2020 MathWorks, Inc.
+    % Copyright (c) 2020 MathWorks, Inc.
         
     properties
         name

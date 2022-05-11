@@ -7,7 +7,7 @@ classdef DataFileWriter < handle
     %   Extensible metadata is stored at the end of the file. Files may be appended to.
     %
    
-    % (c) 2020 MathWorks, Inc.
+    % Copyright (c) 2020-2022 MathWorks, Inc.
    
     
     properties
@@ -23,27 +23,27 @@ classdef DataFileWriter < handle
         jFile
         schemaString
     end
+    
     properties(SetAccess = private)
         %% matlabavro.Schema used for this DatafileWriter.
         schema
     end
+
     properties(Access = private)
-        rows
-        isCell
-        columns
-        isTable
+        metaInformation
     end
     
     methods       
         function obj = DataFileWriter()
              %% Constructor
             import org.apache.avro.reflect.*;
+            
+            % Connectg to Avro Java Jibrary
             obj.jDatumObj = ReflectDatumWriter();
             obj.jWriterObj = javaObject('org.apache.avro.file.DataFileWriter',obj.jDatumObj);
-            obj.rows = 0;
-            obj.columns = 0;
-            obj.isCell = 0;
-            obj.isTable = 0;
+
+            % Create metadata object
+            obj.metaInformation = matlabavro.AvroDataMetaInformation;
         end
         
         function obj = set.compressionType(obj,value)
@@ -73,6 +73,7 @@ classdef DataFileWriter < handle
             validateattributes(value,{'double','char','string'},{});
             obj = obj.jWriterObj.setMeta(key,value);
         end
+
         function set.compressionLevel(obj, value)
             %% Sets compression level.
             %   value - double/int32 between -5 and 22
@@ -81,6 +82,7 @@ classdef DataFileWriter < handle
             validateattributes(value,{'int32','double'},{'>',-5,'<',22});
             obj.compressionLevel = value;
         end
+
         function obj = createAvroFile(obj,schema, fileName)
             %% Open a new file for data matching a schema with a random sync.
             validateattributes(fileName,{'char','string'},{});
@@ -89,6 +91,7 @@ classdef DataFileWriter < handle
             obj.schema = schema;
             obj.jWriterObj = obj.jWriterObj.create(schema.jSchemaObj, obj.jFile);
         end        
+
         function obj = createAvroStream(obj,schema)
             %% Open a new file for data matching a schema with a random sync.
             validateattributes(schema,{'matlabavro.Schema'},{});
@@ -97,19 +100,23 @@ classdef DataFileWriter < handle
             obj.schema = schema;
             obj.jWriterObj = obj.jWriterObj.create(schema.jSchemaObj, jByteStream);
         end
+
         function obj = append(obj,data)
             %% Append a datum to a file
-            dataToAppend = matlabavro.AvroHelper.createDataToAppend(obj.schema,data);            
+            dataToAppend = matlabavro.AvroHelper.createDataToAppend(obj.schema, data);
             obj.jWriterObj.append(dataToAppend);
             obj.jWriterObj.flush();
         end
+
         function pos = sync(obj)
             %% Returns the sync position to be used with a datafilereader.seek().
             pos = obj.jWriterObj.sync();
         end
+
         function obj = close(obj)
             %% Close the DataFileWriter.
             obj.jWriterObj.close();
         end
+        
     end
 end

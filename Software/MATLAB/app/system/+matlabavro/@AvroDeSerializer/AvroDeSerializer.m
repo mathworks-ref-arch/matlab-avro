@@ -1,7 +1,7 @@
 classdef AvroDeSerializer
     % AvroDeSerializer Deserialize avro data using binary or json decoder
 
-    % (c) 2020 MathWorks, Inc.
+    % Copyright (c) 2020-2022 MathWorks, Inc.
     
     methods(Static)
         
@@ -27,6 +27,12 @@ classdef AvroDeSerializer
             
             reader.setSchema(schema.jSchemaObj);
             data = reader.read('', decoder);
+
+            % create metainformation for type conversion
+            metaInformation = matlabavro.AvroDataMetaInformation;
+            metaInformation.schema = schema;
+
+            data = matlabavro.AvroHelper.convertToMATLAB(metaInformation, data);
         end
         
         function data = deserializeFromJSON(bytes)

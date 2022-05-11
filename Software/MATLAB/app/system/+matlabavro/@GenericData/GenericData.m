@@ -1,7 +1,7 @@
 classdef GenericData < handle
     %% GENERICDATA Utilities for generic Java data.
    
-   % (c) 2020 MathWorks, Inc.
+   % Copyright (c) 2020 MathWorks, Inc.
    
     properties(Hidden)
         jGenericData

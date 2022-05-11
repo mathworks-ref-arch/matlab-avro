@@ -12,7 +12,7 @@ classdef testField < matlab.unittest.TestCase
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% Please add your test cases below
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % (c) 2020 MathWorks, Inc.
+    % Copyright (c) 2020 MathWorks, Inc.
     properties
         schema
         field
@@ -22,7 +22,8 @@ classdef testField < matlab.unittest.TestCase
         function testSetup(testCase)
             tmp = matlabavro.Schema();
             testCase.schema = tmp.create(matlabavro.SchemaType.INT);
-            testCase.field = matlabavro.Field('new',testCase.schema,'',20);
+            intVal = int32(20);
+            testCase.field = matlabavro.Field('new',testCase.schema,'',intVal);
         end
     end
     

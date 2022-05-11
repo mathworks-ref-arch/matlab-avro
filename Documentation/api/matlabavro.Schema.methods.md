@@ -110,19 +110,6 @@ Set the metadata information for dimensions.
 | **Sealed** | false  |
 | **Static** | true   |
 
-**matlabavro.Schema.createSchemaForObject**
-
-Generate schema automatically for MATLAB object.
-
-Use this method to automatically generate schema for MATLAB objects.
-
-**Method Details**
-
-| **Access** | public |
-|------------|--------|
-| **Sealed** | false  |
-| **Static** | True   |
-
 **matlabavro.Schema/getElementType**
 
 If schema is an array, returns its element type.
@@ -161,6 +148,17 @@ otherwise returns the name of the primitive type.
 
 If this is a record, enum or fixed, returns its name, otherwise the name of the
 primitive type.
+
+**Method Details**
+
+| **Access** | public |
+|------------|--------|
+| **Sealed** | false  |
+| **Static** | false  |
+
+**matlabavro.Schema/getTypes**
+
+If schema is a union, gets all included types.
 
 **Method Details**
 

@@ -1,5 +1,11 @@
 #  MATLAB&reg; Interface *for Apache Avro*™ - Release Notes
 
+## Release 0.8.4 (6 May 2022)
+* Improved type handling on reading
+* Fixes for compression, and empty elements in structures and objects
+* Simplified syntax for writing cell and matrix data
+* Updated the underlying JAR file
+
 ## Release 0.8.3 (12 Oct 2021)
 * Fixed syntax errors.
 * Added data type info.

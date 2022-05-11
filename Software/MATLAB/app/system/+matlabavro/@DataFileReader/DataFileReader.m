@@ -1,7 +1,7 @@
 classdef DataFileReader < handle    
     %% DATAFILEREADER Random access to files written with DataFileWriter.   
     
-    % (c) 2020 MathWorks, Inc.
+    % Copyright (c) 2020-2022 MathWorks, Inc.
         
     properties(Hidden)
         jDatumObj
@@ -10,11 +10,7 @@ classdef DataFileReader < handle
     end
     
     properties(Access = private)
-        rows = 0
-        isCell = 0
-        columns = 0
-        isTable = 0
-        isObject = 0
+        metaInformation
     end
     
     methods
@@ -25,26 +21,36 @@ classdef DataFileReader < handle
             validateattributes(fName,{'char'},{});
             import org.apache.avro.generic.*;
             import org.apache.avro.file.*;
+
+            % Connect to Java Avro library
             obj.jDatumObj = GenericDatumReader();
-            
             obj.jFile = javaObject('java.io.File',fName);
             obj.jReaderObj = DataFileReader(obj.jFile, obj.jDatumObj);
+
+            % Create metadata object
+            obj.metaInformation = matlabavro.AvroDataMetaInformation;
+
+            % Get shape metadata
             if obj.jReaderObj.getMetaKeys.contains('rows')
-                obj.rows = obj.jReaderObj.getMetaLong('rows');
+                obj.metaInformation.rows = obj.jReaderObj.getMetaLong('rows');
             end
             if obj.jReaderObj.getMetaKeys.contains('columns')
-                obj.columns = obj.jReaderObj.getMetaLong('columns');
+                obj.metaInformation.cols = obj.jReaderObj.getMetaLong('columns');
             end
+
+            % get type metadata
             if obj.jReaderObj.getMetaKeys.contains('isCell')
-                obj.isCell = obj.jReaderObj.getMetaLong('isCell');
+                obj.metaInformation.isCell = obj.jReaderObj.getMetaLong('isCell');
             end
             if obj.jReaderObj.getMetaKeys.contains('isTable')
-                obj.isTable = obj.jReaderObj.getMetaLong('isTable');
+                obj.metaInformation.isTable = obj.jReaderObj.getMetaLong('isTable');
             end
              if obj.jReaderObj.getMetaKeys.contains('isObject')
-                obj.isObject = obj.jReaderObj.getMetaLong('isObject');
+                obj.metaInformation.isObject = obj.jReaderObj.getMetaLong('isObject');
             end
             
+            % set schema in metadata
+            obj.metaInformation.schema = getSchema(obj);
         end
         
         
@@ -78,7 +84,7 @@ classdef DataFileReader < handle
             sString = obj.jReaderObj.getSchema().toString();
             schema = matlabavro.Schema.parse(sString);
         end
-        
+
         function metaString = getMetaString(obj,key)
             %% Return the value of a metadata property.
             metaString = string(obj.jReaderObj.getMetaString(key));
@@ -98,18 +104,23 @@ classdef DataFileReader < handle
         
         
         function dNext = next(obj)
-            %% Returns the next datum            
+            %% Returns the next datum
             datum = obj.jReaderObj.next();
             try
-            if(obj.isObject)
-                dNext = matlabavro.AvroHelper.convertToMATLABObject(datum);
-            else
-                dNext = matlabavro.AvroHelper.convertToMATLAB(obj.isTable,obj.isCell,obj.rows,obj.columns,datum);
-            end
+                if(obj.metaInformation.isObject)
+                    dNext = matlabavro.AvroHelper.convertToMATLABObject(datum);
+                else
+                    dNext = matlabavro.AvroHelper.convertToMATLAB(obj.metaInformation, datum);
+                end
+
             catch ME
-                warning('Conversion to MATLAB types resulted in error. Returning Avro data read from file.');
-                dNext = datum;
+                newException = MException('matlabavro:DataFileReader:next', ...
+                    "Unable to read next value from " + string(obj.jFile.toString()) + ".");
+
+                newException = newException.addCause(ME);
+                throw(newException)
             end
+
         end
         
         function obj = close(obj)
@@ -117,4 +128,5 @@ classdef DataFileReader < handle
             obj.jReaderObj.close();
         end
     end
+
 end %class

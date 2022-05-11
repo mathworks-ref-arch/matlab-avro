@@ -4,10 +4,10 @@ function startup(varargin)
 % path. It will omit the SVN and other crud.  Modify undesired path
 % filter as desired.
 
-% Copyright (c) 2017-2020, The MathWorks, Inc.
+% Copyright (c) 2017-2022, The MathWorks, Inc.
 
 appStr = 'MATLAB Interface for Apache Avro';
-avrofName = 'matlabavro-0.3.jar';
+avrofName = 'matlabavro-0.4.jar';
 disp(appStr);
 disp(repmat('-',1,numel(appStr)));
 
@@ -57,9 +57,11 @@ disp('Running post setup operations');
 jarFile = fullfile(here,'lib','jar',avrofName);
 %appPath = fullfile(here,'@Avro');
 appPath = fullfile(here,'app','system');
+
 if ~exist(jarFile,'file')
     % The JAR file needs to be built
-    warning('BIGDATA:Avro','Could not locate the JAR file. Please rebuild the JAR file using Maven');
+    warning('matlabavro:startup:missingJavaLibrary', ...
+        'Could not locate the JAR file. Please rebuild the JAR file using Maven');
 end
 
 % Static path
@@ -152,6 +154,7 @@ switch computer
     case 'MACI64'
 		binDirName = 'maci64';
 	otherwise
-		error('FW:Unsupported','The framework is not supported on this platform');
+		error('matlabavro:startup:unsupportedPlatform', ...
+            'The framework is not supported on this platform');
 end
 end

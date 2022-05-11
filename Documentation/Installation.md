@@ -15,7 +15,7 @@ Use Maven to download the Avro Java API jar file and place the matlabavro JAR fi
 
 ```bash
 cd Software/Java
-mvn dependency:copy
+mvn clean package
 ```
 
 3. Start MATLAB and update paths.
@@ -25,7 +25,7 @@ Start MATLAB and update the MATLAB path. A startup script has been provided for 
 cd Software/MATLAB/
 startup
 ```
-The startup script adds an entry to the dynamic class path for the Avro JAR file. To set the static path, create a javaclasspath.txt file in the [prefdir](https://www.mathworks.com/help/matlab/ref/prefdir.html) folder. Add the path to the Avro JAR file in javaclasspath.txt.
+The startup script adds an entry to the MATLAB dynamic Java class path for the Avro JAR file. Using the static class path may yield better performance. To set the static path, create or update a javaclasspath.txt file in the [prefdir](https://www.mathworks.com/help/matlab/ref/prefdir.html) folder. Add the path to the Avro JAR file in javaclasspath.txt.
 
 More information on setting the static class path is [here](https://www.mathworks.com/help/matlab/matlab_external/static-path.html). Restart MATLAB after adding the path for the Avro JAR package.
 

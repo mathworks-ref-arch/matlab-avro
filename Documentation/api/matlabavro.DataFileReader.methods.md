@@ -37,6 +37,17 @@ Return the schema for data in this file.
 | **Sealed** | false  |
 | **Static** | false  |
 
+**matlabavro.DataFileReader/getMATLABType**
+
+Return the MATLAB datatype for avro data schema in this file.
+
+**Method Details**
+
+| **Access** | public |
+|------------|--------|
+| **Sealed** | false  |
+| **Static** | false  |
+
 **matlabavro.DataFileReader/hasNext**
 
 True if more entries remain in this file.

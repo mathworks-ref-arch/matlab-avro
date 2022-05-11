@@ -58,7 +58,6 @@ A boolean; or null.
 | Static   | [createMap](matlabavro.Schema.methods.md)                         | Create a schema for maps.                                                                                                      |
 | Static   | [createRecord](matlabavro.Schema.methods.md)                   | Create a Record type.                                                                                                          |
 | Static   | [createSchemaForData](matlabavro.Schema.methods.md)     | Generate schema for data to be saved in avro format.                                                                           |
-| Static   | [createSchemaForObject](matlabavro.Schema.methods.md) | Generate schema automatically for MATLAB object.                                                                               |
 | Static   | [createUnion](matlabavro.Schema.methods.md)                     | Create a union type.                                                                                                           |
 |          | delete                               | Delete a handle object.                                                                                                        |
 |          | eq                                     | == (EQ) Test handle equality.                                                                                                  |
@@ -69,6 +68,7 @@ A boolean; or null.
 |          | [getFields](matlabavro.Schema.methods.md)                         | If schema is a record, gets all fields.                                                                                        |
 |          | [getFullName](matlabavro.Schema.methods.md)                     | If schema is a record, enum or fixed, returns its namespace-qualified name, otherwise returns the name of the primitive type.  |
 |          | [getName](matlabavro.Schema.methods.md)                             | If this is a record, enum or fixed, returns its name, otherwise the name of the primitive type.                                |
+|          | [getTypes](matlabavro.Schema.methods.md)                         | If schema is a union, gets all included types.                                                                                        |
 |          | gt)                                       | \> (GT) Greater than relation for handles.                                                                                     |
 | Sealed   | isvalid                             | Test handle validity.                                                                                                          |
 |          | le                                       | \<= (LE) Less than or equal relation for handles.                                                                              |
