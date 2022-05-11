@@ -1,5 +1,8 @@
 #  MATLAB&reg; Interface *for Apache Avro*™ - Release Notes
 
+## Release 0.8.5 (11 May 2022)
+* Fix hyperlink in README
+
 ## Release 0.8.4 (6 May 2022)
 * Improved type handling on reading
 * Fixes for compression, and empty elements in structures and objects

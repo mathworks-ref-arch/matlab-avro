@@ -91,7 +91,7 @@ See [documentation](Documentation/README.md) for more information.
 
 
 ## License
-The license for MATLAB interface *for Avro* is available in the [LICENSE.TXT](LICENSE.TXT) file in this GitHub repository.
+The license for MATLAB interface *for Avro* is available in the [LICENSE.md](LICENSE.md) file in this GitHub repository.
 This package uses certain third-party content which is licensed under separate license agreements.
 See the [pom.xml](Software/Java/pom.xml) file for third-party software downloaded at build time.
 
