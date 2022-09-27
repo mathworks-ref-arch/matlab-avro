@@ -5,7 +5,7 @@
 [![Build Status](https://travis-ci.com/mathworks-ref-arch/matlab-avro.svg?branch=master)](https://travis-ci.com/mathworks-ref-arch/matlab-avro)
 
 ## Requirements
-### MathWorks Products (http://www.mathworks.com)
+### MathWorks Products (https://www.mathworks.com)
 * Requires MATLAB release R2017b or newer
 
 ### 3rd Party Products:
