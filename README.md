@@ -2,8 +2,6 @@
 
 #  MATLAB&reg; Interface *for Apache Avro*™
 
-[![Build Status](https://travis-ci.com/mathworks-ref-arch/matlab-avro.svg?branch=master)](https://travis-ci.com/mathworks-ref-arch/matlab-avro)
-
 ## Requirements
 ### MathWorks Products (https://www.mathworks.com)
 * Requires MATLAB release R2017b or newer
@@ -103,3 +101,5 @@ https://www.mathworks.com/products/reference-architectures/request-new-reference
 Email: `mwlab@mathworks.com`
 
 ------------
+
+[//]: #  (copyright 2017-2025, The MathWorks, Inc.)
