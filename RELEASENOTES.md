@@ -1,5 +1,11 @@
 #  MATLAB&reg; Interface *for Apache Avro*™ - Release Notes
 
+## Release 0.8.6 (11 May 2022)
+
+* Fix issue with appending structs (#11)
+* Update Source/Target of Java (#10)
+* Update some library versions for Java dependencies
+
 ## Release 0.8.5 (11 May 2022)
 * Fix hyperlink in README
 
