@@ -374,7 +374,7 @@ classdef AvroHelper
 
             else
                 genericRecord = javaObject('org.apache.avro.generic.GenericData$Record', schema.jSchemaObj);
-                outRecord =  matlabavro.AvroHelper.createRecordForStruct(genericRecord, schema.dataMap);
+                outRecord =  matlabavro.AvroHelper.createRecordForStruct(genericRecord, data);
 
             end
         end
@@ -395,7 +395,7 @@ classdef AvroHelper
                 if isempty(dataMap)
                     thisFieldData = [];
                 else
-                    thisFieldData = dataMap(char(thisFieldName));
+                    thisFieldData = dataMap.(char(thisFieldName));
                 end
 
                 % for nested Records we need to recurse
