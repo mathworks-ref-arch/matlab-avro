@@ -103,9 +103,15 @@ classdef DataFileWriter < handle
 
         function obj = append(obj,data)
             %% Append a datum to a file
-            dataToAppend = matlabavro.AvroHelper.createDataToAppend(obj.schema, data);
-            obj.jWriterObj.append(dataToAppend);
-            obj.jWriterObj.flush();
+            if isstruct(data) || isobject(data)
+                for k=1:numel(data)
+                    dataToAppend = matlabavro.AvroHelper.createDataToAppend(obj.schema, data(k));
+                    obj.jWriterObj.append(dataToAppend);
+                end
+            else
+                dataToAppend = matlabavro.AvroHelper.createDataToAppend(obj.schema, data);
+                obj.jWriterObj.append(dataToAppend);
+            end
         end
 
         function pos = sync(obj)
