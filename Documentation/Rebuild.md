@@ -14,7 +14,7 @@ For developers wanting to go through the build process, make sure to clone
 the project first and checkout master.
 
 ```bash
-git clone --recursive https://github.com/matlab-avro.git
+git clone --recursive https://github.com/mathworks-ref-arch/matlab-avro.git
 ```
 
 If working on an existing repository make sure its up to-date.
